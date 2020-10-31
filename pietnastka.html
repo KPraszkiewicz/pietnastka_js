@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        body {
+            background: black;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid white;
+            padding: 25px;
+            margin: 50px
+        }
+        
+        #obraz {
+            height: 100px;
+            margin: 10px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        #obraz>div {
+            width: 100px;
+            height: 100px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid white;
+        }
+        
+        #obraz div img {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            float: left;
+        }
+        
+        .strzalka {
+            width: 50px;
+            height: 40px;
+            margin: 10px;
+        }
+        
+        body>p {
+            color: white;
+        }
+        
+        #main {
+            border: 1px solid white;
+            width: 600px;
+            height: 600px;
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+        }
+        
+        #main>div {
+            background-image: url("obr/obr1.jpg");
+            background-size: 600px;
+            background-repeat: no-repeat;
+            background-origin: border-box;
+        }
+        
+        #przyciski,
+        #czasomierz {
+            margin: 10px;
+        }
+        
+        .x3>div {
+            width: 200px;
+            height: 200px;
+        }
+        
+        .x4>div {
+            width: 25%;
+            height: 25%;
+        }
+        
+        .x5>div {
+            width: 20%;
+            height: 20%;
+        }
+        
+        .x6>div {
+            width: 100px;
+            height: 100px;
+        }
+        
+        #wyniki {
+            position: fixed;
+            width: 300px;
+            height: 700px;
+            background: white;
+            right: -300px;
+            transition: right 1s;
+        }
+        
+        #wyniki:hover {
+            right: 0;
+        }
+        
+        .topDiv {
+            height: 20%;
+        }
+        
+        .topDiv>div {
+            overflow-y: scroll;
+            height: 80%;
+            margin: 0 10px;
+        }
+        
+        .topDiv p {
+            font-family: Arial, Helvetica, sans-serif
+        }
+        
+        #zakladka {
+            position: absolute;
+            top: 50px;
+            right: 100%;
+            background: white;
+            border: 1px solid red;
+            width: 100px;
+            height: 20px;
+        }
+    </style>
+    <script>
+        //zmienne i stałe
+        const DWUKROPEK = 11;
+        const KROPKA = 10;
+        var N = 3;
+        var orNaKl = []
+        var pusty
+            //objekty
+
+        var czas = {
+            id: Infinity,
+            tekst: "00:00:00.000",
+            DL: 12,
+            html: "",
+            cyfry: ["obr/c0.gif", "obr/c1.gif", "obr/c2.gif", "obr/c3.gif", "obr/c4.gif", "obr/c5.gif", "obr/c6.gif", "obr/c7.gif", "obr/c8.gif", "obr/c9.gif", "obr/d1.gif", "obr/d2.gif"],
+            rozpoczecie: 0,
+            wstaw: function() {
+                //this.tekst = "00:00:00.000"
+                //this.DL = this.tekst.length
+                this.html = document.createElement("div")
+                this.html.id = "czasomierz"
+                for (let i = 0; i < 12; i++) {
+                    var obrr = document.createElement("img")
+                    switch (czas.tekst[i]) {
+                        case ":":
+                            obrr.src = this.cyfry[DWUKROPEK]
+                            obrr.alt = ":"
+                            break;
+                        case ".":
+                            obrr.src = this.cyfry[KROPKA]
+                            obrr.alt = "."
+                            break;
+                        default:
+                            obrr.src = this.cyfry[parseInt(this.tekst[i])]
+                            obrr.alt = czas.tekst[i]
+                            break;
+                    }
+                    this.html.appendChild(obrr)
+                }
+                document.body.appendChild(this.html)
+                return this.html
+            },
+            aktualizuj: function() {
+                let d = new Date(new Date() - this.rozpoczecie);
+                let tmp = d.getHours() - 1
+                d.setHours(tmp);
+                let ms = (d.getMilliseconds() % 1000).toString()
+                if (ms.length < 3)
+                    if (ms.length == 1)
+                        ms = "00" + ms
+                    else // if(ms.length == 2)
+                        ms = "0" + ms
+                this.tekst = d.toLocaleTimeString() + "." + ms
+
+                //aktualizacja obrazków
+                for (let i = 0; i < this.DL; i++) {
+                    switch (this.tekst[i]) {
+                        case ":":
+                            //obr.src = cyfry[DWUKROPEK]
+                            break;
+                        case ".":
+                            //obr.src = cyfry[KROPKA]
+                            break;
+                        default:
+                            this.html.children[i].src = this.cyfry[parseInt(this.tekst[i])]
+                            this.html.children[i].alt = this.tekst[i]
+                            break;
+                    }
+                }
+            },
+            pobierz: function() {
+                let d = new Date(new Date() - this.rozpoczecie);
+                let tmp = d.getHours() - 1
+                d.setHours(tmp);
+                return d
+            },
+            zeruj: function() {
+                this.tekst = "00:00:00.000"
+                for (let i = 0; i < this.DL; i++) {
+                    switch (this.tekst[i]) {
+                        case ":":
+                            //obr.src = cyfry[DWUKROPEK]
+                            break;
+                        case ".":
+                            //obr.src = cyfry[KROPKA]
+                            break;
+                        default:
+                            this.html.children[i].src = this.cyfry[parseInt(this.tekst[i])]
+                            this.html.children[i].alt = this.tekst[i]
+                            break;
+                    }
+                }
+            },
+            start: function() {
+                if (this.id != Infinity)
+                    czas.stop()
+                this.rozpoczecie = new Date()
+                this.id = setInterval(function() {
+                    czas.aktualizuj()
+                }, 1)
+            },
+            stop: function() {
+                if (this.id == Infinity)
+                    return
+                clearInterval(this.id)
+                    //this.tekst = "00:00:00.000"
+                this.id = Infinity
+                    //this.zeruj()
+            }
+        }
+        var wyniki = {
+            html: "",
+            top: {
+                3: [],
+                4: [],
+                5: [],
+                6: []
+            },
+            dodaj: function(kategoria, rekord) {
+                if (this.top[kategoria].length == 0) {
+                    this.top[kategoria].push(rekord)
+                    return
+                }
+                for (let i = 9; i >= 0; i--) {
+                    if (this.top[kategoria][i] === undefined)
+                        continue
+                    if (this.top[kategoria][i].czas <= rekord.czas) {
+                        this.top[kategoria].splice(i + 1, 0, rekord)
+                        break
+                    } else if (i == 0 && this.top[kategoria][0].czas > rekord.czas)
+                        this.top[kategoria].unshift(rekord)
+                }
+                this.top[kategoria].splice(10, 1)
+            },
+            wstaw: function() {
+                this.html = document.createElement("div")
+                this.html.id = "wyniki"
+                this.html.innerHTML = "<div id='zakladka'>Wyniki</div>"
+                for (let i = 3; i <= 6; i++) {
+                    var div = document.createElement("div")
+                    div.className = "topDiv"
+                    var kat = document.createElement("h3")
+                    kat.innerText = "Top 10 - " + i + "x" + i
+                    div.appendChild(kat)
+                    var div2 = document.createElement("div")
+                    div.appendChild(div2)
+                    for (let j = 0; j < this.top[i].length; j++) {
+                        var rek = document.createElement("p")
+                        rek.innerHTML = (j + 1) + ". " + this.top[i][j].nick + " - " + this.top[i][j].czas
+                        div2.appendChild(rek)
+                    }
+
+                    this.html.appendChild(div)
+                }
+
+                document.body.appendChild(this.html)
+                return this.html
+            },
+            aktualizuj: function() {
+                for (let i = 0; i < 4; i++) {
+                    var div = this.html.getElementsByClassName("topDiv")[i].children[1]
+                    div.innerHTML = ""
+                        //var kat = document.createElement("h3")
+                        //kat.innerText = "Top 10 - " + (i + 3) + "x" + (i + 3)
+                        //div[i].appendChild(kat)
+                    for (let j = 0; j < this.top[i + 3].length; j++) {
+                        var rek = document.createElement("p")
+                        rek.innerHTML = (j + 1) + ". " + this.top[i + 3][j].nick + " - " + this.top[i + 3][j].czas
+                        div.appendChild(rek)
+                    }
+
+                    //this.html.appendChild(div)
+                }
+            },
+            zapisz: function() {
+                var d = new Date();
+                d.setTime(d.getTime() + 10 * 24 * 60 * 60 * 1000);
+                var expires = "expires=" + d.toUTCString();
+                var obj = JSON.stringify(this.top) //'{'
+                for (let i = 3; i <= 6; i++) {
+                    for (let j = 0; j < this.top[i].length; j++) {
+
+                        document.cookie = "top" + "=" + obj + ";" + expires + ";path=/";
+                        //document.cookie = "ctop"+i+j + "=" + this.top[i][j].czas + ";" + expires + ";path=/";
+                    }
+
+                }
+            },
+            wczytaj: function() {
+                var ca = document.cookie.split(";")
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf("top=") == 0) {
+                        this.top = JSON.parse(c.substring(4, c.length));
+                    }
+                }
+                wyniki.aktualizuj()
+            },
+        }
+        var wyborObrazka = {
+            html: "",
+            n: 4,
+            id: Infinity,
+            wyb: 0,
+            wstaw: function() {
+                this.html = document.createElement("div")
+                this.html.id = "obraz"
+                var div = document.createElement("div")
+                div.id = "suwak"
+                for (let i = 0; i < this.n; i++) {
+                    var img = document.createElement("img")
+                    img.src = "obr/obr" + (i + 1) + ".jpg"
+                    img.alt = "obr"
+                    img.style.left = (100 * i) + "px"
+                    div.appendChild(img)
+                }
+                var strzalka = document.createElement("img")
+                strzalka.src = "obr/strzalka.png"
+                strzalka.alt = "obr"
+                strzalka.className = "strzalka"
+                strzalka.style.transform = "scaleX(-1)"
+                strzalka.onclick = this.zmien(-1)
+                this.html.appendChild(strzalka)
+                this.html.appendChild(div)
+                var strzalka = document.createElement("img")
+                strzalka.src = "obr/strzalka.png"
+                strzalka.alt = "obr"
+                strzalka.className = "strzalka"
+                strzalka.onclick = this.zmien(1)
+                this.html.appendChild(strzalka)
+                document.body.appendChild(this.html)
+                return this.html
+            },
+            zmien: function(kier) {
+                return function() {
+                    //zmienne
+                    var wyb = wyborObrazka.wyb
+                    var n = wyborObrazka.n
+                    var el = document.getElementById("suwak")
+                    var pop
+                    var nast
+                        //animacja + zmniana
+                    if (wyborObrazka.id === Infinity) {
+                        wyborObrazka.id = setInterval(function() {
+                            el.scrollLeft += kier
+                            if (el.scrollLeft % 100 == 0) {
+                                clearInterval(wyborObrazka.id)
+                                wyborObrazka.id = Infinity
+
+                                wyb = (wyb + kier) % n
+                                if (wyb < 0)
+                                    wyb = n - 1
+
+                                if (wyb == 0) {
+                                    pop = n - 1
+                                    nast = 1
+                                } else if (wyb == n - 1) {
+                                    nast = 0
+                                    pop = n - 2
+                                } else {
+                                    pop = (wyb - 1) % n
+                                    nast = (wyb + 1) % n
+                                }
+
+                                //console.log("po", pop, wyb, nast)
+
+                                el.children[wyb].style.left = 100 + "px"
+                                el.children[pop].style.left = 0 + "px"
+                                el.children[nast].style.left = 200 + "px"
+
+                                el.scrollLeft = 100
+                                wyborObrazka.wyb = wyb
+
+                                for (let i = 0; i < document.styleSheets[0].cssRules.length; i++) {
+                                    if (document.styleSheets[0].cssRules[i].selectorText == "#main > div") {
+                                        document.styleSheets[0].cssRules[i].style.backgroundImage = 'url("obr/obr' + (wyb + 1) + '.jpg")'
+                                        break
+                                    }
+                                }
+                                //reset
+                                gra.reset()
+                                    // czas.stop()
+                                    // czas.zeruj()
+                                    // gra.wstaw(N)
+                            }
+                        }, 5)
+                    }
+                }
+            }
+        }
+        var wyborTrybu = {
+            html: "",
+            wstaw: function() {
+                this.html = document.createElement("div")
+                this.html.id = "przyciski"
+                for (let i = 3; i <= 6; i++) {
+                    var przycisk = document.createElement("button")
+                    przycisk.innerText = i + "x" + i
+                    przycisk.onclick = this.klik(i)
+                    this.html.appendChild(przycisk)
+                }
+                document.body.appendChild(this.html)
+                return this.html
+            },
+            klik: function(n) {
+                return function() {
+                    N = n
+                    czas.stop()
+                    czas.zeruj()
+                    gra.wstaw(N)
+                    gra.mieszaj()
+                }
+            }
+        }
+        var gra = {
+            html: "",
+            pusty: "",
+            id: Infinity,
+            trwa: false,
+            wstaw: function(tryb) {
+                if (this.html == "")
+                    this.html = document.createElement("div")
+                this.html.innerHTML = ""
+                this.html.id = "main"
+                this.html.className = "x" + tryb
+                for (let i = 0; i < tryb; i++)
+                    for (let j = 0; j < tryb; j++) {
+                        var div = document.createElement("div")
+                        div.style.backgroundPosition = i * (-600 / tryb) + "px " + j * (-600 / tryb) + "px"
+                        div.style.order = i * tryb + j
+                        div.className = "" + i + j
+                        div.onclick = function() {
+                            var el = this
+                            return gra.zamiana(el)
+                        };
+                        this.html.appendChild(div)
+                        orNaKl[div.style.order] = div.className
+                    }
+                this.html.children[tryb * tryb - 1].style.background = "black"
+                this.html.children[tryb * tryb - 1].classList.add("pusty")
+                this.pusty = this.html.children[tryb * tryb - 1]
+
+                if (!document.getElementById("main"))
+                    document.body.appendChild(this.html)
+            },
+            zamiana: function(el) {
+                var oPusty = parseInt(this.pusty.style.order)
+                var order = oPusty - el.style.order
+                if (oPusty % N == N - 1 && order == -1)
+                    return false
+                if (oPusty % N == 0 && order == 1)
+                    return false
+                if (order == -1 || order == 1 || order == N || order == -N) {
+                    this.pusty.style.order = el.style.order
+                    el.style.order = oPusty.toString()
+                    orNaKl[oPusty] = this.pusty.className
+                    orNaKl[el.style.order] = el.className
+                    if (this.trwa)
+                        this.sprawdz()
+                    return true
+                }
+                return false
+            },
+            sprawdz: function() {
+                for (let i = 0; i < this.html.children.length; i++) {
+                    if (this.html.children[i].style.order != i)
+                        return false
+                }
+                gra.koniec()
+                return true;
+            },
+            mieszaj: function() {
+                let i = 0
+                var pop
+                this.trwa = false
+                this.pusty = document.getElementsByClassName("pusty")[0]
+                if (this.id != Infinity)
+                    clearInterval(this.id)
+                gra.id = setInterval(function() {
+
+                    var oPusty = parseInt(document.getElementsByClassName("pusty")[0].style.order)
+                    do {
+                        kier = Math.floor(Math.random() * 4)
+                        switch (kier) {
+                            case 0:
+                                kier = -N
+                                break;
+                            case 1:
+                                kier = -1
+                                break;
+                            case 2:
+                                kier = 1
+                                break;
+                            case 3:
+                                kier = N
+                                break;
+                        }
+                        kier = parseInt(kier)
+                    } while (oPusty + kier > N * N - 1 || oPusty + kier < 0 || pop == -kier)
+
+                    pop = kier
+                    var o = oPusty + kier
+
+                    var tmp = document.getElementsByClassName(orNaKl[o])[0]
+                    if (gra.zamiana(tmp))
+                        i++
+
+                        if (i > N * N * 10) {
+                            clearInterval(gra.id)
+                            gra.id = Infinity
+                            gra.start()
+
+                        }
+                }, 5);
+            },
+            start: function() {
+                czas.start()
+                this.trwa = true
+            },
+            koniec: function() {
+                czas.stop()
+                var cz = czas.pobierz()
+                var nazwa = prompt("Wygrałeś! Twój czas to: " + czas.tekst + "\nPodaj nick", "")
+                if (nazwa) {
+                    cz = czas.tekst
+                    wyniki.dodaj(N, {
+                        czas: cz,
+                        nick: nazwa
+                    })
+                    wyniki.aktualizuj()
+                    wyniki.zapisz()
+                }
+                this.trwa = false
+            },
+            reset: function() {
+                czas.stop()
+                czas.zeruj()
+                if (this.id != Infinity) {
+                    clearInterval(this.id)
+                    this.id = Infinity
+                }
+                gra.trwa = false
+                gra.wstaw(N)
+            }
+        }
+        var init = {
+            wstaw: function() {
+                wyborObrazka.wstaw()
+                wyborTrybu.wstaw()
+                czas.wstaw()
+                wyniki.wstaw()
+                gra.wstaw(3)
+                wyniki.wczytaj()
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", init.wstaw);
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>
